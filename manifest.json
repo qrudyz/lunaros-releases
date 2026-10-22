@@ -1,0 +1,1 @@
+{"channel":"stable","image":"lunaros-sys-v2.ext4.gz","notes":"Prima versiune publica (canal nou: repo public qrudyz/lunaros-releases, fara token). Desktop lunardesk macOS-dark cu Terminal + Monitor, update A/B cu rollback automat, Python 3.12 real, kernel 6.12.114 compilat din sursa.","sha256":"18d3780980cacd83ba1d825caf663dd7abdf7537e472c9a144e22d64216ea350","version":2}
