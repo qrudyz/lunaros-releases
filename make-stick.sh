@@ -8,7 +8,7 @@
 #   3. Descarca imaginea live si verifica SHA-256. SURSA PRINCIPALA acum:
 #      gazduirea temporara de la Muse (imaginea taiata in 10 parti, vezi
 #      HOSTED_PARTS mai jos) — linkurile expira pe 24 octombrie 2026,
-#      ~19:28 UTC. Daca o parte nu se descarca, scriptul revine automat la
+#      ~20:26 UTC. Daca o parte nu se descarca, scriptul revine automat la
 #      lansarea din repo-ul PUBLIC qrudyz/lunaros-releases (GitHub Releases,
 #      fara cont/token): manifest.json + imagine, tot cu SHA-256 verificat.
 #   4. Scrie imaginea pe stick cu dd. ATENTIE: stickul ales e STERS complet!
@@ -32,21 +32,22 @@ REPO="qrudyz/lunaros-releases"
 API_LATEST="https://api.github.com/repos/${REPO}/releases/latest"
 
 # --- Sursa principala TEMPORARA: imaginea live gazduita la Muse (in parti) ---
-# Incarcata pe 22 oct 2026; linkurile EXPIRA pe 24 oct 2026, ~19:28 UTC.
+# Incarcata pe 22 oct 2026 (build REPARAT: sector de boot extlinux corect in p1);
+# linkurile EXPIRA pe 24 oct 2026, ~20:26 UTC.
 # Dupa expirare, scriptul cade automat pe GitHub Releases (fluxul de mai jos).
-HOSTED_GZ_SHA="1e3464da266fb081db70c14ac39c0d6682babde72b03acc48203c680b0440b11"  # sha256 al .gz-ului asamblat
+HOSTED_GZ_SHA="28bca17ed75af7c1e775c4be80b7bda8760824f8714975fd0e98274ac268ebb4"  # sha256 al .gz-ului asamblat
 HOSTED_IMG_RAW_BYTES=1678770176   # marimea imaginii decompresate (lunar-live.img)
 HOSTED_PARTS=(
-  "https://muse.ai/files/1345920758603143/1054871804265346/wc65h2el5dpe37fvrzuakx7s/lunar-live.img.gz.part-00"
-  "https://muse.ai/files/1345920758603143/1821336305843908/017r5walr3eed0u8s7jnfehu/lunar-live.img.gz.part-01"
-  "https://muse.ai/files/1345920758603143/2367786347302679/lvrmwehssny7cx0fnkygegyd/lunar-live.img.gz.part-02"
-  "https://muse.ai/files/1345920758603143/2172996150237944/0od7bit5hzeqczdjds65g15r/lunar-live.img.gz.part-03"
-  "https://muse.ai/files/1345920758603143/945529651679425/jmwg2pgcg5sz6rx07yqhr1p1/lunar-live.img.gz.part-04"
-  "https://muse.ai/files/1345920758603143/1416500833392567/yt6up54mucxk9k17p9h4h53y/lunar-live.img.gz.part-05"
-  "https://muse.ai/files/1345920758603143/1850146886000851/eztago29nke04rel69ccwdw3/lunar-live.img.gz.part-06"
-  "https://muse.ai/files/1345920758603143/2076698789627426/r0t2lg6qjm1ldzchvz8xyavp/lunar-live.img.gz.part-07"
-  "https://muse.ai/files/1345920758603143/4607664329452937/rhgjtl0gny8e5v8g69rlv8l8/lunar-live.img.gz.part-08"
-  "https://muse.ai/files/1345920758603143/1610445564149100/dp6qmcaqmhjskjsymlgpv0zf/lunar-live.img.gz.part-09"
+  "https://muse.ai/files/1345920758603143/1021959277620204/ojc8iifzjtar58rhrh0gygws/lunar-live.img.gz.part-00"
+  "https://muse.ai/files/1345920758603143/1005161469267942/nbzrb0spdfold8h652s37s6o/lunar-live.img.gz.part-01"
+  "https://muse.ai/files/1345920758603143/1646533866915026/man56xcjd3rfdkt62sdz29gn/lunar-live.img.gz.part-02"
+  "https://muse.ai/files/1345920758603143/1076732231850414/if1ho6mtvfn8li0ntg5p29jf/lunar-live.img.gz.part-03"
+  "https://muse.ai/files/1345920758603143/4420193801457629/9lcoi3zntvnhp6oa56s6f0f1/lunar-live.img.gz.part-04"
+  "https://muse.ai/files/1345920758603143/1108328625396398/dsi8d3na15lk93zfiu09nt34/lunar-live.img.gz.part-05"
+  "https://muse.ai/files/1345920758603143/2610189559427475/0lhryfy3c7l6t71k9rsugnxk/lunar-live.img.gz.part-06"
+  "https://muse.ai/files/1345920758603143/1371152228190409/rkvh2zr3atwajcsf8bfnkia4/lunar-live.img.gz.part-07"
+  "https://muse.ai/files/1345920758603143/1124467720288467/v3n6d4vwvcmu5c7alrvj2ab0/lunar-live.img.gz.part-08"
+  "https://muse.ai/files/1345920758603143/29165326399747071/6azwx40gw3comscd81ljmdd3/lunar-live.img.gz.part-09"
 )
 DRY_RUN=0
 ARGS=("$@")
@@ -228,7 +229,7 @@ if [[ $DRY_RUN -eq 1 ]]; then
   info "=== DRY-RUN (nu se scrie nimic) ==="
   info "As face, pe rand:"
   info "  1. Demontez partitiile de pe $DEV."
-  info "  2. SURSA PRINCIPALA (temporara, expira 24 oct 2026 ~19:28 UTC): descarc cele"
+  info "  2. SURSA PRINCIPALA (temporara, expira 24 oct 2026 ~20:26 UTC): descarc cele"
   info "     ${#HOSTED_PARTS[@]} parti ale imaginii live de pe gazduirea Muse, le lipesc,"
   info "     verific SHA-256 al .gz-ului ($HOSTED_GZ_SHA)"
   info "     si scriu pe stick cu gunzip -c | dd bs=4M status=progress conv=fsync."
