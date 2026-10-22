@@ -5,8 +5,12 @@
 # Ce face:
 #   1. Detecteaza stickurile USB conectate (NICIODATA discul de sistem).
 #   2. Arata o lista numerotata; alegi stickul si confirmi tastand SCRIE.
-#   3. Descarca din repo-ul PUBLIC qrudyz/lunaros-releases (GitHub Releases,
-#      fara cont/token) manifest.json + imaginea, si verifica SHA-256.
+#   3. Descarca imaginea live si verifica SHA-256. SURSA PRINCIPALA acum:
+#      gazduirea temporara de la Muse (imaginea taiata in 10 parti, vezi
+#      HOSTED_PARTS mai jos) — linkurile expira pe 24 octombrie 2026,
+#      ~19:28 UTC. Daca o parte nu se descarca, scriptul revine automat la
+#      lansarea din repo-ul PUBLIC qrudyz/lunaros-releases (GitHub Releases,
+#      fara cont/token): manifest.json + imagine, tot cu SHA-256 verificat.
 #   4. Scrie imaginea pe stick cu dd. ATENTIE: stickul ales e STERS complet!
 #
 # Folosire:
@@ -26,6 +30,24 @@ set -euo pipefail
 
 REPO="qrudyz/lunaros-releases"
 API_LATEST="https://api.github.com/repos/${REPO}/releases/latest"
+
+# --- Sursa principala TEMPORARA: imaginea live gazduita la Muse (in parti) ---
+# Incarcata pe 22 oct 2026; linkurile EXPIRA pe 24 oct 2026, ~19:28 UTC.
+# Dupa expirare, scriptul cade automat pe GitHub Releases (fluxul de mai jos).
+HOSTED_GZ_SHA="1e3464da266fb081db70c14ac39c0d6682babde72b03acc48203c680b0440b11"  # sha256 al .gz-ului asamblat
+HOSTED_IMG_RAW_BYTES=1678770176   # marimea imaginii decompresate (lunar-live.img)
+HOSTED_PARTS=(
+  "https://muse.ai/files/1345920758603143/1054871804265346/wc65h2el5dpe37fvrzuakx7s/lunar-live.img.gz.part-00"
+  "https://muse.ai/files/1345920758603143/1821336305843908/017r5walr3eed0u8s7jnfehu/lunar-live.img.gz.part-01"
+  "https://muse.ai/files/1345920758603143/2367786347302679/lvrmwehssny7cx0fnkygegyd/lunar-live.img.gz.part-02"
+  "https://muse.ai/files/1345920758603143/2172996150237944/0od7bit5hzeqczdjds65g15r/lunar-live.img.gz.part-03"
+  "https://muse.ai/files/1345920758603143/945529651679425/jmwg2pgcg5sz6rx07yqhr1p1/lunar-live.img.gz.part-04"
+  "https://muse.ai/files/1345920758603143/1416500833392567/yt6up54mucxk9k17p9h4h53y/lunar-live.img.gz.part-05"
+  "https://muse.ai/files/1345920758603143/1850146886000851/eztago29nke04rel69ccwdw3/lunar-live.img.gz.part-06"
+  "https://muse.ai/files/1345920758603143/2076698789627426/r0t2lg6qjm1ldzchvz8xyavp/lunar-live.img.gz.part-07"
+  "https://muse.ai/files/1345920758603143/4607664329452937/rhgjtl0gny8e5v8g69rlv8l8/lunar-live.img.gz.part-08"
+  "https://muse.ai/files/1345920758603143/1610445564149100/dp6qmcaqmhjskjsymlgpv0zf/lunar-live.img.gz.part-09"
+)
 DRY_RUN=0
 ARGS=("$@")
 
@@ -62,7 +84,7 @@ fi
 
 # --- 2. Unelte necesare ---
 lipsesc=""
-for t in curl lsblk dd sha256sum findmnt umount awk sed grep; do
+for t in curl lsblk dd sha256sum findmnt umount awk sed grep gzip; do
   command -v "$t" >/dev/null 2>&1 || lipsesc="$lipsesc $t"
 done
 if [[ -n "$lipsesc" ]]; then
@@ -206,18 +228,20 @@ if [[ $DRY_RUN -eq 1 ]]; then
   info "=== DRY-RUN (nu se scrie nimic) ==="
   info "As face, pe rand:"
   info "  1. Demontez partitiile de pe $DEV."
+  info "  2. SURSA PRINCIPALA (temporara, expira 24 oct 2026 ~19:28 UTC): descarc cele"
+  info "     ${#HOSTED_PARTS[@]} parti ale imaginii live de pe gazduirea Muse, le lipesc,"
+  info "     verific SHA-256 al .gz-ului ($HOSTED_GZ_SHA)"
+  info "     si scriu pe stick cu gunzip -c | dd bs=4M status=progress conv=fsync."
+  info "     Imagine decompresata: $(human "$HOSTED_IMG_RAW_BYTES") — trebuie sa incapa pe stick."
   if descarca_release && descarca_manifest && alege_imaginea; then
     ver="$(sed -n 's/.*"version"[^0-9]*\([0-9][0-9]*\).*/\1/p' "$MAN_JSON" | head -1)"
-    info "  2. Din $REPO (ultima lansare, v${ver:-?}): descarc manifest.json + $IMG"
-    info "     URL: $IMG_URL"
-    info "     Verific SHA-256: $IMG_SHA"
+    info "  3. FALLBACK (doar daca gazduirea temporara pica): din $REPO (v${ver:-?})"
+    info "     descarc manifest.json + $IMG, verific SHA-256: $IMG_SHA"
   else
-    info "  2. Din $REPO: interoghez ultima lansare, descarc manifest.json + imaginea din el"
-    info "     (acum nu am putut citi lansarea de pe GitHub — probabil nu e publicata inca;"
-    info "      in rularea reala scriptul s-ar opri aici cu eroare.)"
+    info "  3. FALLBACK: lansarea din $REPO (acum nu am putut-o citi de pe GitHub —"
+    info "     probabil nepublicata inca; in rularea reala, daca pica si gazduirea"
+    info "     temporara, scriptul se opreste cu eroare.)"
   fi
-  info "  3. Verific suma SHA-256 a fisierului descarcat (anulez la nepotrivire)."
-  info "  4. Scriu imaginea pe $DEV cu: dd bs=4M status=progress conv=fsync, apoi sync."
   info "Dispozitiv tinta: $DEV — ${C_MODEL[$idx]} — $(human "$DEV_BYTES")"
   info "=== DRY-RUN terminat: nu s-a scris nimic. ==="
   exit 0
@@ -248,7 +272,9 @@ for part in "$DEV"?*; do
 done
 umount "$DEV" 2>/dev/null || true
 
-# --- 7. Descarca manifest + imagine din ultima lansare, verifica SHA-256 ---
+# --- 7. Fluxul de FALLBACK: descarca manifest + imagine din ultima lansare
+#         GitHub, verifica SHA-256, scrie pe stick ---
+flux_release() {
 info "Interoghez ultima lansare din $REPO..."
 if ! descarca_release; then
   err "Nu pot citi lansarile din $REPO (retea sau repo fara lansari publicate)."
@@ -311,3 +337,68 @@ info "  3. In BIOS/boot menu alege boot de pe USB (mod Legacy/BIOS);"
 info "     pe R500 meniul de boot apare de regula cu F12 la pornire."
 info "  4. Sistemul porneste LIVE de pe stick — il poti incerca fara instalare,"
 info "     iar din desktop ai aplicatia de instalare pe disc cand esti gata."
+}
+
+# --- 8. Fluxul PRINCIPAL: imaginea live din gazduirea temporara (parti) ---
+# Returneaza 0 DOAR daca stickul a fost scris complet din aceasta sursa.
+# La orice esec de descarcare / verificare returneaza 1 (nimic scris),
+# iar apelantul cade pe flux_release() de mai sus.
+incearca_gazduire_temporara() {
+  local dir="$TMPD/parti" asamblat="$TMPD/lunar-live.img.gz"
+  local i url suma st
+  mkdir -p "$dir" || return 1
+  info "Descarc imaginea live din gazduirea temporara (${#HOSTED_PARTS[@]} parti)..."
+  for i in "${!HOSTED_PARTS[@]}"; do
+    url="${HOSTED_PARTS[$i]}"
+    info "  Partea $((i+1))/${#HOSTED_PARTS[@]}..."
+    if ! curl -fL -# -o "$dir/part-$(printf '%02d' "$i")" "$url"; then
+      err "Partea $((i+1)) nu s-a descarcat."
+      return 1
+    fi
+  done
+  info "Lipesc partile si verific SHA-256..."
+  if ! cat "$dir"/part-* > "$asamblat"; then
+    err "Nu am putut asambla partile."
+    return 1
+  fi
+  suma="$(sha256sum "$asamblat" | cut -d' ' -f1)"
+  if [[ "${suma,,}" != "${HOSTED_GZ_SHA,,}" ]]; then
+    err "SHA-256 al imaginii asamblate NU corespunde (asteptat $HOSTED_GZ_SHA, primit $suma)."
+    return 1
+  fi
+  info "SHA-256 OK."
+  if (( HOSTED_IMG_RAW_BYTES > DEV_BYTES )); then
+    err "Imaginea live decompresata ($(human "$HOSTED_IMG_RAW_BYTES")) nu incape pe stick ($(human "$DEV_BYTES"))."
+    return 1
+  fi
+  info "Scriu imaginea pe $DEV (dureaza cateva minute)..."
+  gunzip -c "$asamblat" | dd of="$DEV" bs=4M status=progress conv=fsync
+  st=("${PIPESTATUS[@]}")
+  if [[ ${st[0]} -ne 0 || ${st[1]} -ne 0 ]]; then
+    err "Scrierea a esuat (gunzip=${st[0]}, dd=${st[1]})."
+    return 1
+  fi
+  sync
+  info ""
+  info "=============================================================="
+  info " GATA! Stickul cu LunarOS (live, gazduire temporara) e pregatit."
+  info "=============================================================="
+  info "Pasii urmatori:"
+  info "  1. Scoate stickul in siguranta (scrisul s-a terminat, sync facut)."
+  info "  2. Baga-l in ThinkPad R500 si porneste laptopul."
+  info "  3. In BIOS/boot menu alege boot de pe USB (mod Legacy/BIOS);"
+  info "     pe R500 meniul de boot apare de regula cu F12 la pornire."
+  info "  4. Sistemul porneste LIVE de pe stick — il poti incerca fara instalare,"
+  info "     iar din desktop ai aplicatia de instalare pe disc cand esti gata."
+  return 0
+}
+
+# --- 9. Dispecer: intai gazduirea temporara, apoi GitHub Releases ---
+if incearca_gazduire_temporara; then
+  exit 0
+fi
+info ""
+info "Gazduirea temporara nu a mers (link expirat, retea sau verificare picata)"
+info "si NIMIC nu s-a scris din ea. Incerc acum lansarea de pe GitHub..."
+info ""
+flux_release
