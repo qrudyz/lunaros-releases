@@ -5,12 +5,12 @@
 # Ce face:
 #   1. Detecteaza stickurile USB conectate (NICIODATA discul de sistem).
 #   2. Arata o lista numerotata; alegi stickul si confirmi tastand SCRIE.
-#   3. Descarca imaginea live si verifica SHA-256. SURSA PRINCIPALA acum:
-#      gazduirea temporara de la Muse (imaginea taiata in 10 parti, vezi
-#      HOSTED_PARTS mai jos) — linkurile expira pe 24 octombrie 2026,
-#      ~20:26 UTC. Daca o parte nu se descarca, scriptul revine automat la
-#      lansarea din repo-ul PUBLIC qrudyz/lunaros-releases (GitHub Releases,
-#      fara cont/token): manifest.json + imagine, tot cu SHA-256 verificat.
+#   3. Descarca imaginea live si verifica SHA-256. SURSA PRINCIPALA:
+#      Google Drive (fisier intreg, link public, fara cont) — vezi
+#      DRIVE_LIVE_URL mai jos. Daca Drive pica, scriptul incearca partile
+#      din gazduirea temporara Muse (HOSTED_PARTS; expira 24 oct 2026),
+#      apoi lansarea din repo-ul PUBLIC qrudyz/lunaros-releases
+#      (GitHub Releases, fara cont/token). Totul cu SHA-256 verificat.
 #   4. Scrie imaginea pe stick cu dd. ATENTIE: stickul ales e STERS complet!
 #
 # Folosire:
@@ -49,6 +49,11 @@ HOSTED_PARTS=(
   "https://muse.ai/files/1345920758603143/1124467720288467/v3n6d4vwvcmu5c7alrvj2ab0/lunar-live.img.gz.part-08"
   "https://muse.ai/files/1345920758603143/29165326399747071/6azwx40gw3comscd81ljmdd3/lunar-live.img.gz.part-09"
 )
+
+# --- Sursa principala PERMANENTA: Google Drive (fisier intreg, fara parti) ---
+# Acelasi fisier ca cel asamblat din partile de mai sus (acelasi SHA-256).
+DRIVE_LIVE_ID="1rA9NmJYSdI-slV4CfD1CczXK7DpFJrBq"
+DRIVE_LIVE_URL="https://drive.usercontent.google.com/download?id=${DRIVE_LIVE_ID}&export=download&confirm=t"
 DRY_RUN=0
 ARGS=("$@")
 
@@ -229,8 +234,7 @@ if [[ $DRY_RUN -eq 1 ]]; then
   info "=== DRY-RUN (nu se scrie nimic) ==="
   info "As face, pe rand:"
   info "  1. Demontez partitiile de pe $DEV."
-  info "  2. SURSA PRINCIPALA (temporara, expira 24 oct 2026 ~20:26 UTC): descarc cele"
-  info "     ${#HOSTED_PARTS[@]} parti ale imaginii live de pe gazduirea Muse, le lipesc,"
+  info "  2. SURSA PRINCIPALA: descarc imaginea live intreaga de pe Google Drive,"
   info "     verific SHA-256 al .gz-ului ($HOSTED_GZ_SHA)"
   info "     si scriu pe stick cu gunzip -c | dd bs=4M status=progress conv=fsync."
   info "     Imagine decompresata: $(human "$HOSTED_IMG_RAW_BYTES") — trebuie sa incapa pe stick."
@@ -394,12 +398,62 @@ incearca_gazduire_temporara() {
   return 0
 }
 
-# --- 9. Dispecer: intai gazduirea temporara, apoi GitHub Releases ---
+# --- 8b. Fluxul Drive: imaginea live intreaga de pe Google Drive ---
+# Returneaza 0 DOAR daca stickul a fost scris complet din aceasta sursa.
+incearca_drive() {
+  local gz="$TMPD/lunar-live-drive.img.gz" suma st
+  info "Descarc imaginea live de pe Google Drive (un singur fisier, ~205 MB)..."
+  if ! curl -fL -# -o "$gz" "$DRIVE_LIVE_URL"; then
+    err "Descarcarea de pe Google Drive a esuat."
+    return 1
+  fi
+  info "Verific SHA-256..."
+  suma="$(sha256sum "$gz" | cut -d' ' -f1)"
+  if [[ "${suma,,}" != "${HOSTED_GZ_SHA,,}" ]]; then
+    err "SHA-256 NU corespunde (asteptat $HOSTED_GZ_SHA, primit $suma)."
+    return 1
+  fi
+  info "SHA-256 OK."
+  if (( HOSTED_IMG_RAW_BYTES > DEV_BYTES )); then
+    err "Imaginea live decompresata ($(human "$HOSTED_IMG_RAW_BYTES")) nu incape pe stick ($(human "$DEV_BYTES"))."
+    return 1
+  fi
+  info "Scriu imaginea pe $DEV (dureaza cateva minute)..."
+  gunzip -c "$gz" | dd of="$DEV" bs=4M status=progress conv=fsync
+  st=("${PIPESTATUS[@]}")
+  if [[ ${st[0]} -ne 0 || ${st[1]} -ne 0 ]]; then
+    err "Scrierea a esuat (gunzip=${st[0]}, dd=${st[1]})."
+    return 1
+  fi
+  sync
+  info ""
+  info "=============================================================="
+  info " GATA! Stickul cu LunarOS (live, de pe Google Drive) e pregatit."
+  info "=============================================================="
+  info "Pasii urmatori:"
+  info "  1. Scoate stickul in siguranta (scrisul s-a terminat, sync facut)."
+  info "  2. Baga-l in ThinkPad R500 si porneste laptopul."
+  info "  3. In BIOS/boot menu alege boot de pe USB (mod Legacy/BIOS);"
+  info "     pe R500 meniul de boot apare de regula cu F12 la pornire."
+  info "  4. Sistemul porneste LIVE de pe stick — il poti incerca fara instalare,"
+  info "     iar din desktop ai aplicatia de instalare pe disc cand esti gata."
+  return 0
+}
+
+# --- 9. Dispecer: intai Google Drive, apoi gazduirea temporara (parti),
+#         apoi GitHub Releases ---
+if incearca_drive; then
+  exit 0
+fi
+info ""
+info "Google Drive nu a mers (retea sau verificare picata) si NIMIC nu s-a scris"
+info "din el. Incerc gazduirea temporara (parti)..."
+info ""
 if incearca_gazduire_temporara; then
   exit 0
 fi
 info ""
-info "Gazduirea temporara nu a mers (link expirat, retea sau verificare picata)"
-info "si NIMIC nu s-a scris din ea. Incerc acum lansarea de pe GitHub..."
+info "Nici gazduirea temporara nu a mers (link expirat, retea sau verificare"
+info "picata) si NIMIC nu s-a scris din ea. Incerc lansarea de pe GitHub..."
 info ""
 flux_release
