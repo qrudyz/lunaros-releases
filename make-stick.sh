@@ -35,8 +35,8 @@ API_LATEST="https://api.github.com/repos/${REPO}/releases/latest"
 # Incarcata pe 22 oct 2026 (build REPARAT: sector de boot extlinux corect in p1);
 # linkurile EXPIRA pe 24 oct 2026, ~20:26 UTC.
 # Dupa expirare, scriptul cade automat pe GitHub Releases (fluxul de mai jos).
-HOSTED_GZ_SHA="28bca17ed75af7c1e775c4be80b7bda8760824f8714975fd0e98274ac268ebb4"  # sha256 al .gz-ului asamblat
-HOSTED_IMG_RAW_BYTES=1678770176   # marimea imaginii decompresate (lunar-live.img)
+HOSTED_GZ_SHA="9ee56a3cde075431f0a2f8ef2c5124408fce634c34a9554ff538ad85fb896d48"  # sha256 al .gz-ului (imaginea GRUB/fat3, aceeasi pe Drive)
+HOSTED_IMG_RAW_BYTES=1880096768   # marimea imaginii decompresate (lunar-live-fat3.img)
 HOSTED_PARTS=(
   "https://muse.ai/files/1345920758603143/1021959277620204/ojc8iifzjtar58rhrh0gygws/lunar-live.img.gz.part-00"
   "https://muse.ai/files/1345920758603143/1005161469267942/nbzrb0spdfold8h652s37s6o/lunar-live.img.gz.part-01"
@@ -52,7 +52,7 @@ HOSTED_PARTS=(
 
 # --- Sursa principala PERMANENTA: Google Drive (fisier intreg, fara parti) ---
 # Acelasi fisier ca cel asamblat din partile de mai sus (acelasi SHA-256).
-DRIVE_LIVE_ID="1rA9NmJYSdI-slV4CfD1CczXK7DpFJrBq"
+DRIVE_LIVE_ID="1ETW8HUF_OuPg_tDyy546LeRPmd_0yhct"
 DRIVE_LIVE_URL="https://drive.usercontent.google.com/download?id=${DRIVE_LIVE_ID}&export=download&confirm=t"
 DRY_RUN=0
 ARGS=("$@")
@@ -402,7 +402,7 @@ incearca_gazduire_temporara() {
 # Returneaza 0 DOAR daca stickul a fost scris complet din aceasta sursa.
 incearca_drive() {
   local gz="$TMPD/lunar-live-drive.img.gz" suma st
-  info "Descarc imaginea live de pe Google Drive (un singur fisier, ~205 MB)..."
+  info "Descarc imaginea live de pe Google Drive (un singur fisier, ~209 MB)..."
   if ! curl -fL -# -o "$gz" "$DRIVE_LIVE_URL"; then
     err "Descarcarea de pe Google Drive a esuat."
     return 1
