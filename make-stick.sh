@@ -27,9 +27,9 @@ REPO="qrudyz/lunaros-releases"
 API_LATEST="https://api.github.com/repos/${REPO}/releases/latest"
 
 # --- Sursa principala: ISO-ul de instalare v3.3 pe Google Drive ---
-DRIVE_ISO_ID="1_C2mLqPWP8oHzhLauf7B1JaXyOZJnJpc"
+DRIVE_ISO_ID="1xlwbSzX0zWj7d5P56OiS-hHExxYC51ds"
 DRIVE_ISO_URL="https://drive.usercontent.google.com/download?id=${DRIVE_ISO_ID}&export=download&confirm=t"
-ISO_SHA256="d235bbe7796f8e8a70b4b6d5af41f7e3945f7c401b8dd6f0d1dfe49fc64a3346"
+ISO_SHA256="7c6b233740feaf77e87d8c5e660e5395f24f326ea08bda67bf337fda83ba2de7"
 ISO_BYTES=140509184   # marimea ISO-ului (140.509.184 B, ~134 MB)
 
 DRY_RUN=0
