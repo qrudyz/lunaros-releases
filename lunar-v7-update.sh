@@ -1,5 +1,5 @@
 #!/bin/bash
-# lunar-v6-update.sh - se ruleaza in antiX LIVE pe R500, cu: sudo bash lunar-v6-update.sh
+# lunar-v7-update.sh - se ruleaza in antiX LIVE pe R500, cu: sudo bash lunar-v6-update.sh
 # Faza 1: descarca update-ul LunarOS v6 (telefonul cu tethering USB bagat).
 # Faza 2: te anunta cand sa scoti telefonul si sa bagi hardul Intenso 1TB;
 #         il detecteaza singur si copiaza fisierele pe el (backup).
