@@ -1,0 +1,16 @@
+{
+  "version": 8,
+  "image": "lunaros-sys-v8.ext4.gz",
+  "sha256": "b361e5914ab16ccde64d13b30243776675925a424bad62dbb510a23e6953ac86",
+  "size": 140794133,
+  "parts": [
+    "lunaros-sys-v8.ext4.gz.part-00",
+    "lunaros-sys-v8.ext4.gz.part-01",
+    "lunaros-sys-v8.ext4.gz.part-02",
+    "lunaros-sys-v8.ext4.gz.part-03",
+    "lunaros-sys-v8.ext4.gz.part-04",
+    "lunaros-sys-v8.ext4.gz.part-05"
+  ],
+  "released": "2026-10-23",
+  "notes": "v8 (dock plutitor + bara macOS, Discord RPC in LunarVS) cu lunar-update pe canal direct-din-repo: de la v9 incolo update-urile se iau din folderul update/, fara Releases"
+}
