@@ -187,6 +187,7 @@ mesaj_gata() {
   info ""
   info "=============================================================="
   info " GATA! Stickul de INSTALARE LunarOS v3.3 e pregatit."
+  info " SHA-256 ISO scris: ${1:-$ISO_SHA256}"
   info "=============================================================="
   info "Pasii urmatori:"
   info "  1. Scoate stickul in siguranta (scrisul s-a terminat, sync facut)."
@@ -219,7 +220,7 @@ incearca_drive_iso() {
     return 1
   fi
   sync
-  mesaj_gata
+  mesaj_gata "$suma"
   return 0
 }
 
@@ -284,7 +285,7 @@ flux_release() {
     *)    dd if="$TMPD/$IMG" of="$DEV" bs=4M status=progress conv=fsync ;;
   esac
   sync
-  mesaj_gata
+  mesaj_gata "$suma"
 }
 
 # --- 9. Dispecer: intai Google Drive (ISO v3.3), apoi GitHub Releases ---
