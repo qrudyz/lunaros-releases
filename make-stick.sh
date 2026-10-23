@@ -29,7 +29,7 @@ API_LATEST="https://api.github.com/repos/${REPO}/releases/latest"
 # --- Sursa principala: ISO-ul de instalare v3.3 pe Google Drive ---
 DRIVE_ISO_ID="1nfarydrDgs-NZU5524VNio39VfJ2U0Db"
 DRIVE_ISO_URL="https://drive.usercontent.google.com/download?id=${DRIVE_ISO_ID}&export=download&confirm=t"
-ISO_SHA256="6a504596c2408be9382bbf83ce5a58b59b223ef6ed99660723c72ef5c4597c8d"
+ISO_SHA256="fcf0835c7a9fd39ff4b6e17d8e01f7c74947a4b5892c79cce5e2840e64dc4d23"
 ISO_BYTES=146800640   # marimea ISO-ului (146.800.640 B, ~140 MB)
 
 DRY_RUN=0
